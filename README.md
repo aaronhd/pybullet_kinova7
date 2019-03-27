@@ -18,6 +18,6 @@ Pybullet 2.1.3
 
 3. roscore
 
-4. rosrun yumi_grasp run_ugnet_pybullet.py  (rosrun rviz rviz FOR visulation)
+4. rosrun yumi_grasp run_ugnet_pybullet.py  (rosrun rviz rviz FOR visualation)
 
 5. python enjoy_kinova7_diverse_object_grasping.py
