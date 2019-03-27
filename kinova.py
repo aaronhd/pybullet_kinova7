@@ -174,7 +174,7 @@ class Kinova:
       # print(pos)
       # pos= [1.5,0,0.4]
       # self.endEffectorAngle = self.endEffectorAngle + da
-      endEffectorAngle = self.endEffectorAngle + da
+      endEffectorAngle = da
       # print("endEffectorAngle")
       # print(endEffectorAngle)
       # pos = self.endEffectorPos
@@ -187,7 +187,9 @@ class Kinova:
 
       if mode==1:
         # print("moving")
-        orn = p.getQuaternionFromEuler([0,math.pi,0]) # -math.pi,yaw])
+        # orn = p.getQuaternionFromEuler([0,math.pi,0]) # -math.pi,yaw])   0326
+        orn = p.getQuaternionFromEuler([0,math.pi,-endEffectorAngle]) # -math.pi,yaw])
+
         if (self.useNullSpace==1):
           if (self.useOrientation==1):
             jointPoses = p.calculateInverseKinematics(self.kinovaUid,self.kinovaEndEffectorIndex,pos,orn,self.ll,self.ul,self.jr,self.rp)
@@ -205,13 +207,14 @@ class Kinova:
         # print(len(jointPoses))
         # print("self.kinovaEndEffectorIndex")
         # print(self.kinovaEndEffectorIndex)
+        # p.setJointMotorControl2(self.kinovaUid, 8, p.POSITION_CONTROL, targetPosition=endEffectorAngle,force=self.maxForce*0.5)
 
         if (self.useSimulation):
           # for i in range (self.kinovaEndEffectorIndex):
           for i in range (7):
             #print(i)
             p.setJointMotorControl2(bodyUniqueId=self.kinovaUid,jointIndex=i+2,controlMode=p.POSITION_CONTROL,targetPosition= jointPoses[i],targetVelocity=0,\
-              force=self.maxForce,maxVelocity=self.maxVelocity, positionGain=0.03,velocityGain=1)
+              force=self.maxForce*1,maxVelocity=self.maxVelocity, positionGain=0.03,velocityGain=1)
             # p.setJointMotorControl2(self._kinova,jointIndex=joint,controlMode=POSITION_CONTROL, targetPosition=0, force=2000)
             # pass
         else:
@@ -235,7 +238,7 @@ class Kinova:
         p.setJointMotorControl2(self.kinovaUid,13,p.POSITION_CONTROL,targetPosition=0,force=self.fingerTipForce)
         p.setJointMotorControl2(self.kinovaUid,15,p.POSITION_CONTROL,targetPosition=0,force=self.fingerTipForce)
 
-      p.setJointMotorControl2(self.kinovaUid, 8, p.POSITION_CONTROL, targetPosition=endEffectorAngle,force=self.maxForce)
+        # p.setJointMotorControl2(self.kinovaUid, 8, p.POSITION_CONTROL, targetPosition=endEffectorAngle,force=self.maxForce*0.5)
 
       # jointpos=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
       # for i in range(p.getNumJoints(self.kinovaUid)):

@@ -19,7 +19,6 @@ import rospy
 from cv_bridge import CvBridge
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
-import math
 
 
 # some message type
@@ -97,15 +96,15 @@ VISUALISE = True
 graph = tf.get_default_graph()
 
 # Get the camera parameters
-# camera_info_msg = rospy.wait_for_message('/kinect2/qhd/camera_info', CameraInfo)  #0321
+camera_info_msg = rospy.wait_for_message('/kinect2/qhd/camera_info', CameraInfo)
 # camera_info_msg = rospy.wait_for_message('/kinect2/sd/camera_info', CameraInfo)
 
 
-# K = camera_info_msg.K
-fx = 1
-cx = 1
-fy = 1
-cy = 1
+K = camera_info_msg.K
+fx = K[0]
+cx = K[2]
+fy = K[4]
+cy = K[5]
 
 # print(fx)
 # print(cx)
@@ -144,9 +143,6 @@ def visu_heatmap(data):
     out_img[:, :, 2] = data_crop[:,:,0]    # B
     return out_img
 
-
-
-
 def robot_pos_callback(data):
     global ROBOT_Z
     ROBOT_Z = data.pose.position.z
@@ -161,22 +157,14 @@ def depth_callback(depth_message):
     global crop_size
     with TimeIt('prediction'):
     # with TimeIt('Crop'):
-        depthImg = bridge.imgmsg_to_cv2(depth_message)
-        rospy.loginfo(depthImg.shape)
-
-
-        near = 0.01
-        far = 0.24
-        depth = far * near / (far - (far - near) * depthImg)
-
-
+        depth = bridge.imgmsg_to_cv2(depth_message, "mono16")
         # Crop a square out of the middle of the depth and resize it to 300*300
-        depth_crop = cv2.resize(depth[(304-crop_size)//2:(304-crop_size)//2+crop_size, (304-crop_size)//2:(304-crop_size)//2+crop_size], (304, 304))
+        # depth_crop = cv2.resize(depth[(424-crop_size)//2:(424-crop_size)//2+crop_size, (512-crop_size)//2:(512-crop_size)//2+crop_size], (300, 300))
         # print((424-crop_size)//2, (424-crop_size)//2+crop_size)
         # print((512-crop_size)//2, (512-crop_size)//2+crop_size)
         # exit()
 
-        depth_crop = cv2.resize(depth, (Input_Res, Input_Res))
+        depth_crop = cv2.resize(depth[(540-crop_size)//2:(540-crop_size)//2+crop_size, (960-crop_size)//2:(960-crop_size)//2+crop_size], (Input_Res, Input_Res))
 
 
         # Replace nan with 0 for inpainting.
@@ -201,7 +189,7 @@ def depth_callback(depth_message):
 
         # Back to original size and value range.
         depth_crop = depth_crop[1:-1, 1:-1]
-        depth_crop = depth_crop * depth_scale / 1.0  # kinect output unit is millemeter, but realsense output unit is meter
+        depth_crop = depth_crop * depth_scale / 1000.0  # kinect output unit is millemeter, but realsense output unit is meter
 
         # kernel=cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
         # depth_crop=cv2.morphologyEx((depth_crop * 1000),cv2.MORPH_OPEN,kernel)
@@ -339,49 +327,17 @@ def depth_callback(depth_message):
             grasp_quality = 0
         # Convert max_pixel back to uncropped/resized image coordinates in order to do the camera transform.
         # max_pixel = ((np.array(max_pixel) / 300.0 * crop_size) + np.array([(424 - crop_size)//2, (512 - crop_size) // 2]))
-        max_pixel = ((np.array(max_pixel) / 304.0 * crop_size) + np.array([(304 - crop_size)//2, (304 - crop_size) // 2]))  #[2,1]
+        max_pixel = ((np.array(max_pixel) / 304.0 * crop_size) + np.array([(540 - crop_size)//2, (960 - crop_size) // 2]))  #[2,1]
         # depth_crop = cv2.resize(depth[(540-crop_size)//2:(540-crop_size)//2+crop_size, (960-crop_size)//2:(960-crop_size)//2+crop_size], (300, 300))
         # where is orign point
 
         max_pixel = np.round(max_pixel).astype(np.int)
 
-        point_depth = depthImg[max_pixel[0], max_pixel[1]]
-
+        point_depth = depth[max_pixel[0], max_pixel[1]]
         # print('point_depth')
         # print(point_depth)
 
-        view_matrix = np.array([[0.0, 1.0, -0.0, 0.0],[-1.0, 0.0, -0.0, 0.0],[0.0, 0.0, 1.0, 0.0], [-0.0, -0.6499999761581421, -1.2400000095367432, 1.0]])  
-        proj_matrix = np.array([[4.510708808898926, 0.0, 0.0, 0.0], [0.0, 4.510708808898926, 0.0, 0.0],[ 0.0, 0.0, -1.0020020008087158, -1.0], [0.0, 0.0, -0.0200200192630291, 0.0] ])
-        inter_gl = np.dot(view_matrix, proj_matrix)
-        # inter_gl = np.dot(proj_matrix, view_matrix)
-
-        px = 2.0*(max_pixel[1] - 0)/304.0 - 1.0
-        py = 1.0 - (2.0*max_pixel[0])/304.0
-        # py = 2.0*(max_pixel[0] - 0)/304.0 - 1.0
-        pz = 2.0*point_depth - 1.0 
-        PP3D = np.array([px, py, pz, 1.0])
-
-        PP_world = np.dot(PP3D, np.linalg.inv(inter_gl))
-        # PP_world = np.dot( np.linalg.inv(inter_gl), PP3D)
-        rospy.loginfo("PP_world")
-        print(PP3D)
-        print(PP_world)
-        print(PP_world/PP_world[3])
-        print(depth[max_pixel[0], max_pixel[1]])
-
         # These magic numbers are my camera intrinsic parameters.
-        # fov = 25.0
-        # fx = 1/math.tan(math.radians(fov/2.0))
-        # theta_x = math.radians(-90) + math.atan2(max_pixel[1],fx)
-        # X = point_depth * math.tan(theta_x)
-        # Z = point_depth
-        # fy = 1/math.tan(math.radians(fov/2.0))
-        # theta_y = math.atan2(max_pixel[0],fy)
-        # Y = math.tan(theta_y) * point_depth/ math.cos(theta_x)
-        # print([X, Y, Z])
-
-
-
         x = (max_pixel[1] - cx)/(fx) * point_depth
         y = (max_pixel[0] - cy)/(fy) * point_depth
         z = point_depth

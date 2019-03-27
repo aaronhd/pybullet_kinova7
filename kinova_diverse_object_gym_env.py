@@ -42,10 +42,10 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
                isEnableSelfCollision=True,
                renders=False,
                isDiscrete=False,
-               maxSteps=2,
+               maxSteps=4,
                dv=0.06,
                removeHeightHack=False,
-               blockRandom=0.3,
+               blockRandom=0.1,  #0.3
                cameraRandom=0,
                width=304,
                height=304,
@@ -100,10 +100,6 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     self._isTest = isTest
     self._obj_pos =[]
 
-    # rospy.init_node('pybullet_kinova7-2')
-
-    # grasp_pub = rospy.Publisher('pybullet/img/depth_raw', Image, queue_size=1)
-
     if self._renders:
       self.cid = p.connect(p.SHARED_MEMORY)
       if (self.cid<0):
@@ -149,18 +145,6 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     self._proj_matrix = p.computeProjectionMatrixFOV(
         fov, aspect, near, far)
     
-    # print("view matrix proj_matrix:")
-    # print(self._view_matrix)
-    # print(self._proj_matrix)
-    
-
-
-    # f = 0.5 * self._height / math.tan(fov * math.pi / 360)
-    # K = np.array(((f, 0, self._width / 2), (0, f, self._height / 2), (0, 0, 1)))
-    # print("K matrix:===========")
-    # print(K)
-
-
     self._attempted_grasp = False
     self._env_step = 0
     self.terminated = 0
@@ -174,7 +158,6 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     # p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-0.6320000,0.000000,0.000000,0.0,1.0)
 
     p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-0.630000,0.000000,0.000000,0.0,1.0)
-
     # p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-.820000,0.000000,0.000000,0.0,1.0)
             
     p.setGravity(0,0,-10)
@@ -201,7 +184,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     # Randomize positions of each object urdf.
     objectUids = []
     for urdf_name in urdfList:
-      xpos = 0.55 +self._blockRandom*random.random()  #0.3
+      xpos = 0.6 +self._blockRandom*random.random()  #0.55
       ypos = 0 +self._blockRandom*(random.random()-0.5)  #0.5
       angle = np.pi/2 + self._blockRandom * np.pi * random.random()
       orn = p.getQuaternionFromEuler([0, 0, angle])
@@ -212,18 +195,10 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
         [orn[0], orn[1], orn[2], orn[3]])
       objectUids.append(uid)
 
-      # mv = np.array([[0.0, 1.0, -0.0,  0.0],[-1.0, 0.0, -0.0, 0.0],[0.0, 0.0, 1.0, 0.0], [-0.0, -0.6499999761581421, -1.2400000095367432, 1.0]])  
-      # mp = np.array([[5.671281814575195, 0.0, 0.0, 0.0], [0.0, 5.671281814575195, 0.0, 0.0],[ 0.0, 0.0, -1.0020020008087158, -1.0], [0.0, 0.0, -0.0200200192630291, 0.0] ])
-      # inter = np.dot(mp, mv)
-      # obj =np.array( [xpos, ypos, 0.08,1])
-      # print("image pose")
-      # print(np.dot(inter, obj))
-
-
       # print(p.getBasePositionAndOrientation(uid)[0])
-      print("physical pose")
-      self._obj_pos = [xpos, ypos, .08 , 0.0, 0]
-      print(self._obj_pos)
+      # print("physical pose")
+      # self._obj_pos = [xpos, ypos, .08 , 0.0, 0]
+      # print(self._obj_pos)
       # print(":_randomly_place_objects")
       # print([xpos, ypos, .15])
       # Let each object fall to the tray individual, to prevent object
@@ -243,18 +218,10 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
     depthImg = img_arr[3]
 
-
-
     # near = 0.01
     # far = 0.24
     # depth = far * near / (far - (far - near) * depthImg)
-
-
-    # print("=============================================")
-    # print(np.min(depthImg))
     # np_depth_arr = np.reshape(depth, (self._height, self._width))
-    # ggcnn.depth_callback(np_depth_arr)
-    
     # return np_img_arr[:, :, :3]
     return depthImg
 
@@ -272,31 +239,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     """
     # print("step function")
     # print(action)
-    dv = self._dv  # velocity per physics step.
-    if self._isDiscrete:
-      # Static type assertion for integers.
-      assert isinstance(action, int)
-      if self._removeHeightHack:
-        dx = [0, -dv, dv, 0, 0, 0, 0, 0, 0][action]
-        dy = [0, 0, 0, -dv, dv, 0, 0, 0, 0][action]
-        dz = [0, 0, 0, 0, 0, -dv, dv, 0, 0][action]
-        da = [0, 0, 0, 0, 0, 0, 0, -0.25, 0.25][action]
-      else:
-        dx = [0, -dv, dv, 0, 0, 0, 0][action]
-        dy = [0, 0, 0, -dv, dv, 0, 0][action]
-        dz = -dv
-        da = [0, 0, 0, 0, 0, -0.25, 0.25][action]
-    else:
-      dx = dv * action[0]
-      dy = dv * action[1]
-      if self._removeHeightHack:
-        dz = dv * action[2]
-        da = 0.25 * action[3]
-      else:
-        dz = -dv
-        da = 0.25 * action[2]
-
-    return self._step_continuous([dx, dy, dz-0.7, da, 0.1])
+    return self._step_continuous([action[0], action[1], action[2], action[3], action[4]])
 
   def _step_continuous(self, action):
     """Applies a continuous velocity-control action.
@@ -313,88 +256,72 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     # Perform commanded action.
     # print("_step_continuous")
     # print(action)
-    # self._obj_pos, _ = p.getBasePositionAndOrientation(self._objectUids)
-    # self._obj_pos[3] += action[3]
-    # self._obj_pos[2] += 0.05
-    # print(self._obj_pos)
-    action2 = copy.copy(self._obj_pos)
-    # action2[2] = self._obj_pos[2]
-    self._env_step += 1
-    print("_env_step==========================")
-    print(self._env_step, self._maxSteps)
-    self._kinova.applyAction(action2, 1)
-    print("Approach!")
 
-    # self._kinova.applyAction(action)
-
-    for _ in range(self._actionRepeat):
-      p.stepSimulation()
-      if self._renders:
-        time.sleep(self._timeStep)
-      if self._termination():
-        break
-    # If we are close to the bin, attempt grasp.
+    # get current robot state
     state = p.getLinkState(self._kinova.kinovaUid,
                                   self._kinova.kinovaEndEffectorIndex)
     end_effector_pos = state[0]
-    print("end_effector_pos[2]")
-    print(end_effector_pos[2], action2[2])
-    if end_effector_pos[2] <= action2[2]+0.08:
-      finger_angle = 0.5
-      print("Start Grasp!")
-      # grasp_action = [self._obj_pos[0], self._obj_pos[1], self._obj_pos[2]- 0.09, 6, finger_angle]
-      # self._kinova.applyAction(grasp_action)
-      # p.stepSimulation()
-      z_value = end_effector_pos[2]
-      for _ in range(1000):
-        print("Rotating !")
-        grasp_action = [action2[0], action2[1], end_effector_pos[2], 1.5, 0]
-        self._kinova.applyAction(grasp_action, 0)
-        p.stepSimulation()
-      observation = self._get_observation()
-        # if self._renders:
-        #  time.sleep(self._timeStep)
 
+    # test_ang = 1.57
+    action2 = [action[0], action[1], action[2] + 0.35, action[3], 0]
+    # print("end_effector_pos[2]")
+    # print(end_effector_pos[2], action2[2])
+    self._env_step += 1
+    print("_env_step: %d of %d" %(self._env_step,self._maxSteps))
+    # print(self._env_step, self._maxSteps)
+    # print(action2)
+
+    # If we are close to the bin, attempt grasp.
+    if end_effector_pos[2] >= action2[2]+0.05:
+      self._kinova.applyAction(action2, 1)
+      print("Approaching!")
+      for _ in range(self._actionRepeat):
+        p.stepSimulation()
+        if self._renders:
+          time.sleep(self._timeStep)
+        if self._termination():
+          break
+   
+    else:
+    # if end_effector_pos[2] <= action2[2]+0.10:
+      print("Start grasping!")
+      finger_angle = 0.5
+      z_value = end_effector_pos[2]
       for _ in range(500):
-        print("Downing! !")
-        print(z_value)
-        grasp_action = [action2[0], action2[1], z_value, 1.5, 0]
+        # print("Downing! !")
+        # print(z_value)
+        grasp_action = [action2[0], action2[1], z_value, action2[3], finger_angle]
+        # print(grasp_action)
         self._kinova.applyAction(grasp_action, 1)
         p.stepSimulation()
-        z_value -= 0.12 / 50
-        if z_value < 0.06:
-          z_value = 0.06
-        # if self._renders:
-        #   time.sleep(self._timeStep)
-        print("z value=====================")
-        print(z_value)
+        z_value -= 0.35 / 100
+        z_value = max(z_value, action[2], 0.06)
+        if self._renders:
+          time.sleep(self._timeStep)
       observation = self._get_observation()
 
-
-      for _ in range(400):
-        print("Grasping ! ")
-        grasp_action = [action2[0], action2[1], z_value , 1.5, finger_angle]
+      for _ in range(300):
+        # print("Grasping ! ")
+        grasp_action = [action2[0], action2[1], z_value , action2[3], finger_angle]
+        # print(grasp_action)
         self._kinova.applyAction(grasp_action, 0)
         p.stepSimulation()
         finger_angle += 0.8/200.
         if finger_angle > 1.3:
           finger_angle = 1.3
         if self._renders:
-         time.sleep(self._timeStep)
+          time.sleep(self._timeStep)
       observation = self._get_observation()
 
-
       for _ in range(500):
-        print("Lifting !")
-        grasp_action = [action2[0], action2[1], z_value+0.3, 1.5, finger_angle]
+        # print("Lifting !")
+        grasp_action = [action2[0], action2[1], z_value+0.3, action2[3], finger_angle]
+        # print(grasp_action)
         self._kinova.applyAction(grasp_action, 1)
         p.stepSimulation()
         if self._renders:
           time.sleep(self._timeStep)
-        # finger_angle += 0.3/100.
-        # if finger_angle > 0:
-        #   finger_angle = 1.3
-      self._attempted_grasp = True
+        self._attempted_grasp = True
 
     observation = self._get_observation()
     done = self._termination()
