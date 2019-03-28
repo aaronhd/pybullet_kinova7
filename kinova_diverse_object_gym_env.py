@@ -96,7 +96,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     self._numObjects = numObjects
     self._isTest = isTest
     self._obj_pos =[]
-    self.rgbd_used = True
+    self.rgbd_used = False
 
     if self._renders:
       self.cid = p.connect(p.SHARED_MEMORY)
