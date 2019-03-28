@@ -20,13 +20,10 @@ from cv_bridge import CvBridge
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 
-
 # some message type
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import Float32MultiArray
-# import run_pybullet_ggcnn as ggcnn
-
 
 
 class KinovaDiverseObjectEnv(KinovaGymEnv):
@@ -99,6 +96,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     self._numObjects = numObjects
     self._isTest = isTest
     self._obj_pos =[]
+    self.rgbd_used = True
 
     if self._renders:
       self.cid = p.connect(p.SHARED_MEMORY)
@@ -189,8 +187,9 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
       angle = np.pi/2 + self._blockRandom * np.pi * random.random()
       orn = p.getQuaternionFromEuler([0, 0, angle])
       urdf_path = os.path.join(self._urdfRoot, urdf_name)
-      # urdf_path = "/home/aarons/sim2real7/pybullet_data/bar_clamp2/bar_clamp.urdf"
-      # print(urdf_path)
+      # urdf_path = "/home/aarons/sim2real7/pybullet_data/bar_clamp/urdf/bar_clamp.urdf"
+      print("urdf_path")
+      print(urdf_path)
       uid = p.loadURDF(urdf_path, [xpos, ypos, 0.08],
         [orn[0], orn[1], orn[2], orn[3]])
       objectUids.append(uid)
@@ -216,14 +215,18 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
                                       projectionMatrix=self._proj_matrix)
     rgb = img_arr[2]
     np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
-    depthImg = img_arr[3]
+    depthImg = np.expand_dims(img_arr[3], -1)
 
+    if self.rgbd_used:
+      rgbd = np.concatenate((rgb[:,:,:3], depthImg), axis=2)
+      return rgbd
+    else:
     # near = 0.01
     # far = 0.24
     # depth = far * near / (far - (far - near) * depthImg)
     # np_depth_arr = np.reshape(depth, (self._height, self._width))
     # return np_img_arr[:, :, :3]
-    return depthImg
+      return depthImg
 
   def _step(self, action):
     """Environment step.
@@ -295,7 +298,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
         self._kinova.applyAction(grasp_action, 1)
         p.stepSimulation()
         z_value -= 0.35 / 100
-        z_value = max(z_value, action[2], 0.06)
+        z_value = max(z_value, action[2], 0.04)   # depth for 0.06  rgbd for 0.04 
         if self._renders:
           time.sleep(self._timeStep)
       observation = self._get_observation()

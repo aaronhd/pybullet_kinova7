@@ -92,6 +92,7 @@ def main():
     while not rospy.is_shutdown():
         obs, done = env.reset(), False
         rospy.loginfo("New Try !")
+        print(obs.shape)
         depth_image = bridge.cv2_to_imgmsg(obs)
         depth_pub.publish(depth_image)    
         countStep+=1

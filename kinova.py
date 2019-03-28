@@ -81,7 +81,12 @@ class Kinova:
     #   print(p.getJointState(self.kinovaUid,jointIndex))    
     # print("======reset=========")
     # print(p.getLinkState(self.kinovaUid, self.kinovaEndEffectorIndex, computeForwardKinematics =1))
-    self.trayUid = p.loadURDF(os.path.join(self.urdfRootPath,"tray/traybox.urdf"), 0.6600,0.000,-0.0000,0.000000,0.000000,1.000000,0.000000)  #0.44  0.075  -0.19
+
+
+
+    # self.trayUid = p.loadURDF(os.path.join(self.urdfRootPath,"tray/traybox.urdf"), 0.6600,0.000,-0.0000,0.000000,0.000000,1.000000,0.000000)  #0.44  0.075  -0.19   user 20190327
+    
+    
     self.endEffectorPos = [0.061,0.0,1.121]  #0.537,0.0,0.5
     # self.endEffectorPos = [0.0,0.0,0.0]  #0.537,0.0,0.5
     # (0.06106187295331401, -5.7852693706624846e-05, 1.121078907978537)
