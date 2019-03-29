@@ -19,8 +19,8 @@ class Kinova:
     self.maxVelocity = .35
     self.maxForce = 2000.
     self.fingerAForce = 2 
-    self.fingerBForce = 2.5
-    self.fingerTipForce = 2
+    self.fingerBForce = 25
+    self.fingerTipForce = 20
     self.useInverseKinematics = 1
     self.useSimulation = 1
     self.useNullSpace =21
@@ -193,7 +193,7 @@ class Kinova:
       if mode==1:
         # print("moving")
         # orn = p.getQuaternionFromEuler([0,math.pi,0]) # -math.pi,yaw])   0326
-        orn = p.getQuaternionFromEuler([0,math.pi,-endEffectorAngle]) # -math.pi,yaw])
+        orn = p.getQuaternionFromEuler([0,math.pi,-endEffectorAngle]) # -math.pi,yaw])  -endEffectorAngle
 
         if (self.useNullSpace==1):
           if (self.useOrientation==1):
@@ -234,9 +234,9 @@ class Kinova:
       else:
         # print("finger!")
 
-        p.setJointMotorControl2(self.kinovaUid,10,p.POSITION_CONTROL,targetPosition=fingerAngle*1,force=self.fingerBForce)
-        p.setJointMotorControl2(self.kinovaUid,12,p.POSITION_CONTROL,targetPosition=fingerAngle*1,force=self.fingerBForce)
-        p.setJointMotorControl2(self.kinovaUid,14,p.POSITION_CONTROL,targetPosition=fingerAngle*1,force=self.fingerBForce)
+        p.setJointMotorControl2(self.kinovaUid,10,p.POSITION_CONTROL,targetPosition=fingerAngle*1,force=self.fingerBForce*15)
+        p.setJointMotorControl2(self.kinovaUid,12,p.POSITION_CONTROL,targetPosition=fingerAngle*1,force=self.fingerBForce*10)
+        p.setJointMotorControl2(self.kinovaUid,14,p.POSITION_CONTROL,targetPosition=fingerAngle*1,force=self.fingerBForce*10)
 
 
         p.setJointMotorControl2(self.kinovaUid,11,p.POSITION_CONTROL,targetPosition=0,force=self.fingerTipForce)

@@ -47,7 +47,8 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
                width=304,
                height=304,
                numObjects=1,
-               isTest=False):
+               isTest=False,
+               rgbd_used = False):
     """Initializes the KinovaDiverseObjectEnv. 
 
     Args:
@@ -96,7 +97,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     self._numObjects = numObjects
     self._isTest = isTest
     self._obj_pos =[]
-    self.rgbd_used = False
+    self._rgbd_used = rgbd_used
 
     if self._renders:
       self.cid = p.connect(p.SHARED_MEMORY)
@@ -155,7 +156,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     p.loadURDF(os.path.join(self._urdfRoot,"plane.urdf"),[0,0,-1])
     # p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-0.6320000,0.000000,0.000000,0.0,1.0)
 
-    p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-0.630000,0.000000,0.000000,0.0,1.0)
+    p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-0.650000,0.000000,0.000000,0.0,1.0)
     # p.loadURDF(os.path.join(self._urdfRoot,"table/table.urdf"), 0.5000000,0.00000,-.820000,0.000000,0.000000,0.0,1.0)
             
     p.setGravity(0,0,-10)
@@ -182,9 +183,9 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     # Randomize positions of each object urdf.
     objectUids = []
     for urdf_name in urdfList:
-      xpos = 0.6 +self._blockRandom*random.random()  #0.55
+      xpos = 0.6 +self._blockRandom*random.random()  #0.6  for depth;
       ypos = 0 +self._blockRandom*(random.random()-0.5)  #0.5
-      angle = np.pi/2 + self._blockRandom * np.pi * random.random()
+      angle = np.pi/2 + 5*self._blockRandom * np.pi * random.random()
       orn = p.getQuaternionFromEuler([0, 0, angle])
       urdf_path = os.path.join(self._urdfRoot, urdf_name)
       # urdf_path = "/home/aarons/sim2real7/pybullet_data/bar_clamp/urdf/bar_clamp.urdf"
@@ -217,7 +218,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     np_img_arr = np.reshape(rgb, (self._height, self._width, 4))
     depthImg = np.expand_dims(img_arr[3], -1)
 
-    if self.rgbd_used:
+    if self._rgbd_used:
       rgbd = np.concatenate((rgb[:,:,:3], depthImg), axis=2)
       return rgbd
     else:
@@ -242,7 +243,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     """
     # print("step function")
     # print(action)
-    return self._step_continuous([action[0], action[1], action[2], action[3], action[4]])
+    return self._step_continuous([action[0], action[1], action[2], -action[3], action[4]])
 
   def _step_continuous(self, action):
     """Applies a continuous velocity-control action.
@@ -266,13 +267,13 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     end_effector_pos = state[0]
 
     # test_ang = 1.57
-    action2 = [action[0], action[1], action[2] + 0.35, action[3], 0]
+    action2 = [action[0], action[1], action[2] + 0.3, action[3], 0]
     # print("end_effector_pos[2]")
     # print(end_effector_pos[2], action2[2])
     self._env_step += 1
     print("_env_step: %d of %d" %(self._env_step,self._maxSteps))
     # print(self._env_step, self._maxSteps)
-    # print(action2)
+    print(action2[0], action2[1], action2[2]-0.3, action2[3]*57.32, action2[4] )
 
     # If we are close to the bin, attempt grasp.
     if end_effector_pos[2] >= action2[2]+0.05:
@@ -298,7 +299,7 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
         self._kinova.applyAction(grasp_action, 1)
         p.stepSimulation()
         z_value -= 0.35 / 100
-        z_value = max(z_value, action[2], 0.04)   # depth for 0.06  rgbd for 0.04 
+        z_value = max(z_value, action[2], 0.01)   # depth for 0.06  rgbd for 0.04 
         if self._renders:
           time.sleep(self._timeStep)
       observation = self._get_observation()
@@ -310,8 +311,8 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
         self._kinova.applyAction(grasp_action, 0)
         p.stepSimulation()
         finger_angle += 0.8/200.
-        if finger_angle > 1.3:
-          finger_angle = 1.3
+        if finger_angle > 1.35:
+          finger_angle = 1.35
         if self._renders:
           time.sleep(self._timeStep)
       observation = self._get_observation()
@@ -374,7 +375,9 @@ class KinovaDiverseObjectEnv(KinovaGymEnv):
     if test:
       urdf_pattern = os.path.join(self._urdfRoot, 'random_urdfs/*0/*.urdf')
     else:
-      urdf_pattern = os.path.join(self._urdfRoot, 'random_urdfs/*[^0]/*.urdf')
+      # urdf_pattern = os.path.join(self._urdfRoot, 'random_urdfs/*[^0]/*.urdf')
+      urdf_pattern = os.path.join(self._urdfRoot, '3D_adversarial/*/urdf/*.urdf')
+
     found_object_directories = glob.glob(urdf_pattern)
     # print("_get_random_object")
     # print(found_object_directories)

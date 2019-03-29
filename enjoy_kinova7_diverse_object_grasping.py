@@ -3,35 +3,28 @@
 
 import os, inspect
 import numpy as np
-
-# currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-# parentdir = os.path.dirname(os.path.dirname(currentdir))
-# os.sys.path.insert(0,parentdir)
-
 import gym
 import gym.spaces
 import cv2
 from cv_bridge import CvBridge
-
 from kinova_diverse_object_gym_env import KinovaDiverseObjectEnv
 from gym import spaces
-
 import rospy
 from cv_bridge import CvBridge
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
-
 # some message type
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import Float32MultiArray
 
-bridge = CvBridge()
 
-
+# global value
 command_list =[]
 state_list=[False]
 new_command = False
+
+bridge = CvBridge()
 
 class ContinuousDownwardBiasPolicy(object):
   """Policy which takes continuous actions, and is biased to move down.
@@ -80,15 +73,10 @@ def main():
     control = rospy.Subscriber('ggcnn/out/command', Float32MultiArray, control_callback, queue_size=1)
     percept_state = rospy.Subscriber('ggcnn/out/state', Float32MultiArray, state_callback, queue_size=1)
 
-    env = KinovaDiverseObjectEnv(renders=True, isDiscrete=False, maxSteps=3)
-    policy = ContinuousDownwardBiasPolicy()
-    # obs, done = env.reset(), False
+    env = KinovaDiverseObjectEnv(renders=True, isDiscrete=False, maxSteps=3, rgbd_used=False)
+    # policy = ContinuousDownwardBiasPolicy()
     episode_rew = 0
     countStep = 0
-    # obs, done = env.reset(), False
-    # while True:
-    #     pass
-
     while not rospy.is_shutdown():
         obs, done = env.reset(), False
         rospy.loginfo("New Try !")
@@ -103,8 +91,7 @@ def main():
             # act[0] += 3 +0.46
             # print("Action")
             # # print(act)
-
-            # action [x, y, z, angle, width]
+            # # action [x, y, z, angle, width]
             if new_command:
               # print("command list")
               # print(command_list)
@@ -115,15 +102,11 @@ def main():
               if done:
                 new_command = False
               print("done", done)
-            # if new_command is False and  len(command_list)>8:
-            #   continue
-            
             if state_list[0]==1:
               countStep-=1
               break
         print("Episode reward", episode_rew, countStep)
     rospy.spin()
-
 
 if __name__ == '__main__':
     main()
