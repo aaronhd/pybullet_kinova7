@@ -15,7 +15,7 @@ Pybullet 2.1.3
 ##Usage
 1. Download the URDF file in the link.txt.
 
-2. Download the UG-Net model,epoch08 for run_ugnet_pybullet, epoch10 for run_ugnet_greyd_pybullet.
+2. Download the UG-Net model, epoch08 for run_ugnet_pybullet, epoch10 for run_ugnet_greyd_pybullet.
 
 3. roscore
 
