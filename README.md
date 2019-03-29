@@ -21,4 +21,4 @@ Pybullet 2.1.3
 
 4. rosrun yumi_grasp run_ugnet_pybullet.py  (rosrun rviz rviz FOR visualization)
 
-5. python enjoy_kinova7_diverse_object_grasping.py
+5. python enjoy_kinova7_diverse_object_grasping.py （need to wait completion of loading model file in step4）
