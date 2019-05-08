@@ -1,5 +1,5 @@
-https://westlakeu-my.sharepoint.com/personal/songyaoxian_westlake_edu_cn/Documents/github_data/pybullet_data.tar.gz
+https://westlakeu-my.sharepoint.com/:u:/g/personal/songyaoxian_westlake_edu_cn/EYbCIpPqbLdLmDKzXlg-O9QB1Eq4RbKVGwCDccYwC7FLjw?e=rMC2Pi
 
-https://westlakeu-my.sharepoint.com/personal/songyaoxian_westlake_edu_cn/Documents/github_data/epoch_08_model.hdf5
+https://westlakeu-my.sharepoint.com/:u:/g/personal/songyaoxian_westlake_edu_cn/EUqqP60kkrFIuPcMWYBo_LsBx4a3rAuBCeJRCwTUJkLEtA?e=ML9hPI
 
 https://westlakeu-my.sharepoint.com/personal/songyaoxian_westlake_edu_cn/Documents/github_data/epoch_10_model.hdf5
