@@ -1,5 +1,3 @@
-https://westlakeu-my.sharepoint.com/:u:/g/personal/songyaoxian_westlake_edu_cn/EYbCIpPqbLdLmDKzXlg-O9QB1Eq4RbKVGwCDccYwC7FLjw?e=rMC2Pi
+https://www.dropbox.com/s/sd8drvg4jjpql51/epoch_10_model.hdf5?dl=0   // this model is for grey model
 
-https://westlakeu-my.sharepoint.com/:u:/g/personal/songyaoxian_westlake_edu_cn/EUqqP60kkrFIuPcMWYBo_LsBx4a3rAuBCeJRCwTUJkLEtA?e=ML9hPI
-
-https://westlakeu-my.sharepoint.com/personal/songyaoxian_westlake_edu_cn/Documents/github_data/epoch_10_model.hdf5
+https://www.dropbox.com/s/iayv38jnzgixcy8/pybullet_data.tar.gz?dl=0
