@@ -34,10 +34,7 @@ bridge = CvBridge()
 print python_version()
 print("Tensorflow Version: %s" % str(tf.__version__))
 # comment by Aaron
-MODEL_FILE = '/media/aarons/hdd_2/ggcnn_model/networks/190116_1425__UG-Net_lightv2_1604/epoch_10_model.hdf5'  #0215
-# MODEL_FILE = '/media/aarons/hdd_2/ggcnn_model/networks/190116_1544__UG-Net_lightv2/epoch_06_model.hdf5'
-MODEL_FILE = '/media/aarons/hdd_2/ggcnn_model/networks/190215_1559__UG-Net_lightv2_1604/epoch_10_model.hdf5'  #0215 hou
-MODEL_FILE = '/media/aarons/hdd_2/ggcnn_model/networks/190216_1931__UG-Net_lightv2_1604/epoch_10_model.hdf5'  #0216
+MODEL_FILE = '/media/aarons/hdd_2/ggcnn_model/networks/190216_2136__UG-Net_lightv2_1604/epoch_10_model.hdf5'  #0216
 model = load_model(MODEL_FILE)
 
 print(MODEL_FILE)
