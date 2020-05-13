@@ -12,6 +12,10 @@ Keras 2.2.4
 
 Pybullet 2.1.3
 
+Cudnn 7.6.0
+
+Numpy 1.14.0
+
 ##Usage
 1. Download the URDF file in the link.txt.
 
