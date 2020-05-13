@@ -73,7 +73,7 @@ def main():
     control = rospy.Subscriber('ggcnn/out/command', Float32MultiArray, control_callback, queue_size=1)
     percept_state = rospy.Subscriber('ggcnn/out/state', Float32MultiArray, state_callback, queue_size=1)
 
-    env = KinovaDiverseObjectEnv(renders=True, isDiscrete=False, maxSteps=3, rgbd_used=False)
+    env = KinovaDiverseObjectEnv(renders=True, isDiscrete=False, maxSteps=3, rgbd_used=True)
     # policy = ContinuousDownwardBiasPolicy()
     episode_rew = 0
     countStep = 0
