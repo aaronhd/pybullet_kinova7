@@ -14,6 +14,8 @@ Pybullet 2.1.3
 
 Cudnn 7.6.0
 
+CUDA 9.0
+
 Numpy 1.14.0
 
 ##Usage
